@@ -56,11 +56,11 @@ class MainFragment : Fragment() {
                 //
                 viewLifecycleOwner.lifecycleScope.launch {
                     timerViewModel.elapsedTime.observe(viewLifecycleOwner){
-                        if (it.toInt()  == 0 ){
+                        if (it.toInt()  == 1 ){
                             likes = 10
                             binding.tvLikes.text = likes.toString()
                         }
-                        binding.tvTime.text = it.toString()
+                        else binding.tvTime.text = it.toString()
                     }
                 }
             }
