@@ -38,7 +38,6 @@ class LiveDataTimerViewModel : ViewModel() {
                         when(val newValue = (elapsedTime.value!!.toLong() - 1)){
                             0.toLong()->{
                                 mElapsedTime.postValue(60)
-                                timer.cancel()
                             }
                             else -> mElapsedTime.postValue(newValue)
                         }

@@ -59,6 +59,7 @@ class MainFragment : Fragment() {
                         if (it.toInt()  == 1 ){
                             likes = 10
                             binding.tvLikes.text = likes.toString()
+                            timerViewModel.elapsedTime.removeObservers(viewLifecycleOwner)
                         }
                         else binding.tvTime.text = it.toString()
                     }
