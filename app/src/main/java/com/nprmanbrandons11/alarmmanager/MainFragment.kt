@@ -56,7 +56,7 @@ class MainFragment : Fragment() {
                 //
                 viewLifecycleOwner.lifecycleScope.launch {
                     timerViewModel.elapsedTime.observe(viewLifecycleOwner){
-                        if (it.toInt()  == 1 ){
+                        if (it.toInt()  <= 1 ){
                             likes = 10
                             binding.tvLikes.text = likes.toString()
                             timerViewModel.elapsedTime.removeObservers(viewLifecycleOwner)
