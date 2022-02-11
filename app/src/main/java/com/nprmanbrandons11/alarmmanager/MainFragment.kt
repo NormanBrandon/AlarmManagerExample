@@ -1,6 +1,9 @@
 package com.nprmanbrandons11.alarmmanager
 
+import android.R
 import android.app.AlarmManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -16,19 +19,30 @@ import com.nprmanbrandons11.alarmmanager.databinding.FragmentMainBinding
 import android.widget.Toast
 
 import android.content.Context.ALARM_SERVICE
+import android.content.Context.NOTIFICATION_SERVICE
+import android.graphics.Color
+import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 
 import androidx.core.content.ContextCompat.getSystemService
 import kotlinx.coroutines.launch
+import androidx.core.content.ContextCompat.getSystemService
+
+
+
 
 
 class MainFragment : Fragment() {
-
+    private var alarmManager: AlarmManager? = null
+    private var pendingIntent: PendingIntent? = null
     lateinit var binding:FragmentMainBinding
-    private var alarmMgr: AlarmManager? = null
-    private lateinit var alarmIntent: PendingIntent
+
     val timerViewModel : LiveDataTimerViewModel by viewModels()
     private var likes = 10
+    private lateinit var mNotificationManager: NotificationManager
+    private val NOTIFICATION_ID = 0
+    private val PRIMARY_CHANNEL_ID = "primary_notification_channel"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,7 +56,8 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        binding.tvLikes.text ="10"
+        binding.tvTime.text = "60"
         binding.btnLike.setOnClickListener {
             likes = binding.tvLikes.text.toString().toInt()
 
@@ -52,14 +67,17 @@ class MainFragment : Fragment() {
             else{
                 Toast.makeText(requireContext(),"Te has quedado sin likes, espera a que te den más",Toast.LENGTH_SHORT).show()
                 // Alarma con metodo 1
-                createAlarmMethod2()
+                setAlarm()
                 //
                 viewLifecycleOwner.lifecycleScope.launch {
+                    timerViewModel.setTime(60)
                     timerViewModel.elapsedTime.observe(viewLifecycleOwner){
-                        if (it.toInt()  <= 1 ){
+                        if (it.toInt()  == 0 ){
                             likes = 10
+                            binding.tvTime.text = it.toString()
                             binding.tvLikes.text = likes.toString()
                             timerViewModel.elapsedTime.removeObservers(viewLifecycleOwner)
+
                         }
                         else binding.tvTime.text = it.toString()
                     }
@@ -69,35 +87,31 @@ class MainFragment : Fragment() {
         }
 
     }
-    fun createAlarm(){
+
+
+    private fun cancelAlarm() {
         val intent = Intent(requireContext(), AlarmReceiver::class.java)
+        pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, intent, 0)
+        if (alarmManager == null) {
+            alarmManager = requireContext().getSystemService(ALARM_SERVICE) as AlarmManager?
+        }
+        alarmManager!!.cancel(pendingIntent)
+        Toast.makeText(requireContext(), "Alarm Cancelled", Toast.LENGTH_SHORT).show()
+    }
 
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(), 0,
-            intent, 0
+    private fun setAlarm() {
+        alarmManager = requireContext().getSystemService(ALARM_SERVICE) as AlarmManager?
+        val intent = Intent(requireContext(), AlarmReceiver::class.java)
+        pendingIntent = PendingIntent.getBroadcast(requireContext(), 0, intent, 0)
+        alarmManager!!.setRepeating(
+            AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 10 * 1000,
+            AlarmManager.INTERVAL_FIFTEEN_MINUTES, pendingIntent
         )
-
-        val alarmManager = requireContext().getSystemService(ALARM_SERVICE) as AlarmManager?
-        alarmManager!![AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 10 * 1000] =
-            pendingIntent
-        Toast.makeText(requireContext(), "Alarm set", Toast.LENGTH_LONG).show()
+        Toast.makeText(requireContext(), "Alarm set Successfully", Toast.LENGTH_SHORT).show()
     }
 
-    fun createAlarmMethod2(){
-          alarmMgr = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarmIntent = Intent(context, AlarmReceiver::class.java).let { intent ->
-                PendingIntent.getBroadcast(context, 1, intent, 0)
-            }
-            alarmMgr?.setInexactRepeating(
-                AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                SystemClock.elapsedRealtime() + 10,
-                (10 ).toLong(),
-                alarmIntent
-            )
-        Toast.makeText(requireContext(), "Alarm set", Toast.LENGTH_LONG).show()
-    }
-    fun createAlarm3(){
 
-    }
+
+
 
 }

@@ -23,7 +23,30 @@ class LiveDataTimerViewModel : ViewModel() {
         super.onCleared()
         timer.cancel()
     }
+    fun setTime(i:Int){
+        mElapsedTime.postValue(i.toLong())
+    }
 
+    fun initTimer(){
+        mElapsedTime.postValue(60)
+        timer.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                if (elapsedTime.value != null){
+                    // setValue() cannot be called from a background thread so post to main thread.
+                    var newValue = (elapsedTime.value!!.toLong())
+                    when(newValue){
+                        0.toLong()->{
+                            mElapsedTime.postValue(60)
+                        }
+                        else -> {
+                            mElapsedTime.postValue(newValue -1)
+                            newValue -= 1
+                        }
+                    }
+                }
+            }
+        }, ONE_SECOND.toLong(), ONE_SECOND.toLong())
+    }
     companion object {
         private const val ONE_SECOND = 1000
     }
@@ -31,19 +54,7 @@ class LiveDataTimerViewModel : ViewModel() {
     init {
         mElapsedTime.postValue(mInitialTime)
         // Update the elapsed time every second.
-        timer.scheduleAtFixedRate(object : TimerTask() {
-            override fun run() {
-                if (elapsedTime.value != null){
-                    // setValue() cannot be called from a background thread so post to main thread.
-                        when(val newValue = (elapsedTime.value!!.toLong() - 1)){
-                            0.toLong()->{
-                                mElapsedTime.postValue(60)
-                            }
-                            else -> mElapsedTime.postValue(newValue)
-                        }
+        initTimer()
 
-                }
-            }
-        }, ONE_SECOND.toLong(), ONE_SECOND.toLong())
     }
 }
